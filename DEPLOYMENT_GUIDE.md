@@ -242,7 +242,7 @@ https://random-name-123456.netlify.app
 1. Go to **Site settings** → **Domain management**
 2. Click **"Options"** → **"Edit site name"**
 3. Change to: `money-mapper-monitor` (if available)
-4. New URL: `https://money-mapper-monitor.netlify.app`
+4. New URL: `https://m3app.netlify.app`
 
 **Option B: Use Custom Domain**
 

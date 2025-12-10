@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin or sensitive paths (if any)
+Disallow: /api/
+Disallow: /.well-known/
+
+# Sitemap (update after creating sitemap.xml)
+Sitemap: https://m3app.netlify.app/sitemap.xml

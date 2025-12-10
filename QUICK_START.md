@@ -136,7 +136,7 @@ Value: [Your Supabase Anon Key]
 1. Go to **Site settings** → **Domain management**
 2. Click **"Options"** → **"Edit site name"**
 3. Change to: `money-mapper-monitor` (if available)
-4. Your new URL: `https://money-mapper-monitor.netlify.app`
+4. Your new URL: `https://m3app.netlify.app`
 
 **✅ Done!** Your app is live on the internet.
 
