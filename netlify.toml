@@ -7,9 +7,9 @@
   # Publish directory (output of build)
   publish = "dist"
   
-  # Set Node.js version
+  # Set Node.js version (20.x for better Vite compatibility)
   [build.environment]
-    NODE_VERSION = "18"
+    NODE_VERSION = "20"
 
 # Redirect all routes to index.html for client-side routing (SPA)
 [[redirects]]
