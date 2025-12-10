@@ -1,0 +1,8 @@
+security: Remove .env file with exposed Supabase credentials from repository
+
+Security Fix:
+- Deleted .env file containing Supabase URL and anon key
+- Prevents accidental exposure of environment variables in version control
+- .env already added to .gitignore in previous commit
+
+Note: Users must create their own .env file following .env.example template
