@@ -241,25 +241,52 @@ function handleDelete(book: MoneyBook, event?: Event) {
 .books-scroll-container {
   width: 100%;
   overflow-x: auto;
-  padding: 4px 0;
+  padding: 4px 0 8px 0;
+  position: relative;
+
+  /* Gradient shadows to indicate scrollability */
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.95) 0%, transparent 20px),
+    linear-gradient(to left, rgba(255, 255, 255, 0.95) 0%, transparent 20px),
+    linear-gradient(to right, rgba(15, 118, 110, 0.1) 0%, transparent 2px),
+    linear-gradient(to left, rgba(15, 118, 110, 0.1) 0%, transparent 2px);
+  background-repeat: no-repeat;
+  background-size: 20px 100%, 20px 100%, 2px 100%, 2px 100%;
+  background-position: left center, right center, left center, right center;
+  background-attachment: local, local, scroll, scroll;
+
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Thin auto-hide scrollbar */
 .books-scroll-container::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .books-scroll-container::-webkit-scrollbar-track {
-  background: rgba(15, 118, 110, 0.05);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .books-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(15, 118, 110, 0.2);
-  border-radius: 3px;
+  background: rgba(15, 118, 110, 0.15);
+  border-radius: 2px;
+  transition: background 0.2s;
 }
 
 .books-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(15, 118, 110, 0.3);
+}
+
+/* Auto-hide scrollbar - only show on hover */
+.books-scroll-container::-webkit-scrollbar-thumb {
+  opacity: 0;
+  transition: opacity 0.3s, background 0.2s;
+}
+
+.books-scroll-container:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
 }
 
 .books-list {

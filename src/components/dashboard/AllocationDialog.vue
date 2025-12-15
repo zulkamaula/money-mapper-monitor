@@ -92,7 +92,7 @@ function resetForm() {
 </script>
 
 <template>
-  <VDialog v-model="internalValue" max-width="600" persistent>
+  <VDialog v-model="internalValue" max-width="600">
     <VCard>
       <VCardTitle class="pa-5">
         <VIcon icon="mdi-chart-donut" class="mr-2" />
@@ -101,7 +101,7 @@ function resetForm() {
 
       <VDivider />
 
-      <VCardText class="pa-5">
+      <VCardText class="pa-5 overflow-auto">
         <VTextField v-model.number="form.sourceAmount" label="Source Amount" type="number" variant="outlined"
           class="mb-4" autofocus prefix="Rp" />
 
@@ -135,8 +135,9 @@ function resetForm() {
 
       <VCardActions class="pa-4">
         <VSpacer />
-        <VBtn color="grey" variant="outlined" @click="internalValue = false">Cancel</VBtn>
-        <VBtn color="primary" variant="flat" @click="handleSave" :disabled="form.sourceAmount <= 0">
+        <VBtn color="grey" variant="text" class="text-none" @click="internalValue = false">Cancel</VBtn>
+        <VBtn color="primary" variant="flat" class="text-none px-5" @click="handleSave"
+          :disabled="form.sourceAmount <= 0">
           Save Allocation
         </VBtn>
       </VCardActions>

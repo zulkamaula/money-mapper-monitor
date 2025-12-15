@@ -17,8 +17,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const showDialog = ref(false)
-const newPocket = ref({ name: '', percentage: 0 })
-const editingPocket = ref<string | null>(null)
+const dialogMode = ref<'create' | 'edit'>('create')
+const editingPocketId = ref<string | null>(null)
+const pocketData = ref({ name: '', percentage: 0 })
 const isExpanded = ref(true)
 
 const totalPercentage = computed(() => {
@@ -37,35 +38,52 @@ function toggleExpand() {
 }
 
 const canAddPocket = computed(() => {
-  const wouldBeTotal = totalPercentage.value + newPocket.value.percentage
+  // For edit mode, exclude the current pocket's percentage
+  const currentTotal = dialogMode.value === 'edit' && editingPocketId.value
+    ? totalPercentage.value - (props.pockets.find(p => p.id === editingPocketId.value)?.percentage || 0)
+    : totalPercentage.value
+  const wouldBeTotal = currentTotal + pocketData.value.percentage
   return wouldBeTotal <= 100.01
 })
 
+const remainingPercentage = computed(() => {
+  const currentTotal = dialogMode.value === 'edit' && editingPocketId.value
+    ? totalPercentage.value - (props.pockets.find(p => p.id === editingPocketId.value)?.percentage || 0)
+    : totalPercentage.value
+  return 100 - currentTotal - (pocketData.value.percentage || 0)
+})
+
 function openDialog() {
-  newPocket.value = { name: '', percentage: 0 }
+  dialogMode.value = 'create'
+  editingPocketId.value = null
+  pocketData.value = { name: '', percentage: 0 }
   showDialog.value = true
 }
 
-function handleCreate() {
-  if (!newPocket.value.name.trim() || newPocket.value.percentage <= 0 || !canAddPocket.value) {
+function openEditDialog(pocket: Pocket) {
+  dialogMode.value = 'edit'
+  editingPocketId.value = pocket.id
+  pocketData.value = { name: pocket.name, percentage: pocket.percentage }
+  showDialog.value = true
+}
+
+function handleSubmit() {
+  if (!pocketData.value.name.trim() || pocketData.value.percentage <= 0 || !canAddPocket.value) {
     return
   }
-  emit('create', { ...newPocket.value })
+
+  if (dialogMode.value === 'create') {
+    emit('create', { ...pocketData.value })
+  } else if (editingPocketId.value) {
+    const pocket = props.pockets.find(p => p.id === editingPocketId.value)
+    if (pocket) {
+      emit('update', { ...pocket, name: pocketData.value.name, percentage: pocketData.value.percentage })
+    }
+  }
+
   showDialog.value = false
-  newPocket.value = { name: '', percentage: 0 }
-}
-
-function startEdit(pocketId: string) {
-  editingPocket.value = pocketId
-}
-
-function cancelEdit() {
-  editingPocket.value = null
-}
-
-function saveEdit(pocket: Pocket) {
-  emit('update', pocket)
-  cancelEdit()
+  pocketData.value = { name: '', percentage: 0 }
+  editingPocketId.value = null
 }
 
 function handleDelete(pocketId: string) {
@@ -129,70 +147,50 @@ function handleDelete(pocketId: string) {
         </div>
         <VList v-else class="pocket-list">
           <VListItem v-for="pocket in pockets" :key="pocket.id" class="pocket-item mb-2">
-            <template v-if="editingPocket === pocket.id">
-              <div class="edit-row">
-                <VTextField v-model="pocket.name" variant="outlined" density="compact" hide-details
-                  class="flex-grow-1" />
-                <VTextField v-model.number="pocket.percentage" type="number" variant="outlined" density="compact"
-                  hide-details style="max-width: 100px;" suffix="%" />
-                <div class="mx-auto">
-                  <VBtn icon="mdi-check" size="small" color="success" variant="text" @click="saveEdit(pocket)" />
-                  <VBtn icon="mdi-close" size="small" color="grey" variant="text" @click="cancelEdit" />
-                </div>
+            <VListItemTitle class="d-flex align-center justify-space-between">
+              <div class="pocket-actions">
+                <span class="pocket-name">{{ pocket.name }}</span>
+                <VChip color="primary" size="x-small" variant="flat" class="mr-2 ml-1">
+                  {{ pocket.percentage.toFixed(2) }}%
+                </VChip>
               </div>
-            </template>
-            <template v-else>
-              <VListItemTitle class="d-flex align-center justify-space-between">
-                <div class="pocket-actions">
-                  <span class="pocket-name">{{ pocket.name }}</span>
-                  <VChip color="primary" size="x-small" variant="flat" class="mr-2 ml-1">
-                    {{ pocket.percentage.toFixed(2) }}%
-                  </VChip>
-                </div>
-                <VMenu>
-                  <template v-slot:activator="{ props }">
-                    <VBtn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
-                  </template>
-                  <VList density="compact">
-                    <VListItem @click="startEdit(pocket.id)">
-                      <template v-slot:prepend>
-                        <VIcon icon="mdi-pencil" />
-                      </template>
-                      <VListItemTitle>Edit</VListItemTitle>
-                    </VListItem>
-                    <VListItem @click="handleDelete(pocket.id)">
-                      <template v-slot:prepend>
-                        <VIcon icon="mdi-delete" color="error" />
-                      </template>
-                      <VListItemTitle class="text-error">Delete</VListItemTitle>
-                    </VListItem>
-                  </VList>
-                </VMenu>
-              </VListItemTitle>
-            </template>
+              <VMenu location="bottom end" :offset="[-8, -12]" scroll-strategy="close">
+                <template v-slot:activator="{ props }">
+                  <VBtn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+                </template>
+                <VList density="comfortable" style="min-width: 120px;">
+                  <VListItem @click="openEditDialog(pocket)">
+                    <VListItemTitle>Edit</VListItemTitle>
+                  </VListItem>
+                  <VDivider />
+                  <VListItem @click="handleDelete(pocket.id)">
+                    <VListItemTitle class="text-error font-weight-bold">Delete</VListItemTitle>
+                  </VListItem>
+                </VList>
+              </VMenu>
+            </VListItemTitle>
           </VListItem>
         </VList>
       </VCardText>
     </Transition>
 
-    <!-- Add Pocket Dialog -->
+    <!-- Pocket Dialog (Create/Edit) -->
     <VDialog v-model="showDialog" max-width="500">
       <VCard>
         <VCardTitle class="pa-5">
-          <VIcon icon="mdi-wallet-plus" class="mr-2" />
-          Add New Pocket
+          <VIcon :icon="dialogMode === 'create' ? 'mdi-wallet-plus' : 'mdi-pencil'" class="mr-2" />
+          {{ dialogMode === 'create' ? 'Add New Pocket' : 'Edit Pocket' }}
         </VCardTitle>
 
         <VDivider />
 
-        <VCardText class="pa-5">
-          <VTextField v-model="newPocket.name" label="Pocket Name" variant="outlined" class="mb-4" autofocus />
-          <VTextField v-model.number="newPocket.percentage" label="Percentage" type="number" variant="outlined"
-            suffix="%" :hint="`Available: ${(100 - totalPercentage).toFixed(2)}%`" persistent-hint />
+        <VCardText class="pa-5 overflow-auto">
+          <VTextField v-model="pocketData.name" label="Pocket Name" variant="outlined" class="mb-4" autofocus />
+          <VTextField v-model.number="pocketData.percentage" label="Percentage" type="number" variant="outlined"
+            suffix="%" :hint="`Remaining: ${remainingPercentage.toFixed(2)}%`" persistent-hint />
 
-          <div v-if="!canAddPocket && newPocket.percentage > 0" class="text-error text-caption mt-2">
-            Cannot exceed 100%. Current: {{ totalPercentage.toFixed(2) }}%, Would be: {{
-              (totalPercentage + newPocket.percentage).toFixed(2) }}%
+          <div v-if="!canAddPocket && pocketData.percentage > 0" class="text-error text-caption mt-2">
+            Exceeds limit! Remaining after this: {{ remainingPercentage.toFixed(2) }}%
           </div>
         </VCardText>
 
@@ -200,10 +198,10 @@ function handleDelete(pocketId: string) {
 
         <VCardActions class="pa-4">
           <VSpacer />
-          <VBtn color="grey" variant="outlined" @click="showDialog = false">Cancel</VBtn>
-          <VBtn color="primary" variant="flat" @click="handleCreate"
-            :disabled="!newPocket.name.trim() || newPocket.percentage <= 0 || !canAddPocket">
-            Add Pocket
+          <VBtn color="grey" variant="text" class="text-none" @click="showDialog = false">Cancel</VBtn>
+          <VBtn color="primary" variant="flat" class="px-5 text-none" @click="handleSubmit"
+            :disabled="!pocketData.name.trim() || pocketData.percentage <= 0 || !canAddPocket">
+            {{ dialogMode === 'create' ? 'Add Pocket' : 'Save Changes' }}
           </VBtn>
         </VCardActions>
       </VCard>
@@ -307,18 +305,6 @@ function handleDelete(pocketId: string) {
   justify-content: space-between;
   align-items: center;
   gap: 4px;
-}
-
-.edit-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.edit-row :deep(.v-field) {
-  border-radius: 8px;
 }
 
 .empty-state {
