@@ -118,11 +118,10 @@ function handleDelete(book: MoneyBook, event?: Event) {
                   <!-- Display Mode -->
                   <VChip v-else :color="selectedBook?.id === book.id ? 'primary' : 'grey'" @click="handleSelect(book)"
                     class="book-chip" size="large" :variant="selectedBook?.id === book.id ? 'flat' : 'outlined'">
-                    <VIcon icon="mdi-book-outline" size="16" start />
                     {{ book.name }}
-                    <VMenu>
+                    <VMenu class="border">
                       <template v-slot:activator="{ props }">
-                        <VBtn icon="mdi-dots-vertical" size="small" variant="plain" class="pa-0 h-auto w-auto ml-3"
+                        <VBtn icon="mdi-menu-down" size="small" variant="plain" class="pa-0 h-auto w-auto ml-3 border"
                           v-bind="props" @click.stop />
                       </template>
                       <VList density="compact">
