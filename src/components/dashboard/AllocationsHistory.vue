@@ -19,6 +19,11 @@ const emit = defineEmits<Emits>()
 
 const expandedAllocation = ref<string | null>(null)
 const copiedAmount = ref<string | null>(null)
+const isExpanded = ref(true)
+
+function toggleCardExpand() {
+  isExpanded.value = !isExpanded.value
+}
 
 const recentAllocations = computed(() => {
   return props.allocations.slice(0, 10)
@@ -63,72 +68,96 @@ function handleDelete(id: string) {
 
 <template>
   <VCard class="allocations-card" elevation="0">
-    <VCardTitle class="d-flex align-center justify-space-between pa-5 pb-4">
-      <div class="d-flex align-center text-wrap">
-        <VIcon icon="mdi-chart-arc" class="mr-2" color="success" />
-        Recent Allocations
+    <VCardTitle class="card-header pa-5" @click="toggleCardExpand">
+      <div class="header-content">
+        <div class="title-section">
+          <div class="d-flex align-center text-wrap">
+            <VIcon icon="mdi-chart-arc" class="mr-2" color="success" />
+            Recent Allocations
+          </div>
+          <!-- Mobile: Stats below title -->
+          <div class="subtitle-stats d-md-none mt-1">
+            {{ allocations.length }} allocations
+          </div>
+        </div>
+        <!-- Desktop: Stats on right -->
+        <div class="subtitle-stats-desktop d-none d-md-flex">
+          {{ allocations.length }} allocations
+        </div>
+        <!-- Mobile: Toggle button -->
+        <VBtn class="d-md-none" :icon="isExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"
+          variant="text" />
       </div>
-      <VBtn color="primary" size="small" @click="handleCreate" :disabled="!isPercentageValid">
-        <VIcon icon="mdi-plus" start />
-        New
-      </VBtn>
     </VCardTitle>
 
     <VDivider />
 
-    <VCardText class="pa-6 allocations-content">
-      <div v-if="loading" class="py-4">
-        <VSkeletonLoader type="article" v-for="i in 3" :key="i" class="mb-3" />
-      </div>
-      <div v-else-if="allocations.length === 0" class="empty-state text-center py-8">
-        <VIcon icon="mdi-chart-arc" size="48" color="grey-lighten-1" class="mb-3" />
-        <div class="text-grey-darken-1">No allocations yet</div>
-      </div>
+    <!-- Shared Content: Desktop always visible, Mobile collapsible -->
+    <Transition name="expand-card">
+      <VCardText v-show="isExpanded" class="pa-6 allocations-content">
+        <!-- Add New Button -->
+        <VBtn v-if="isPercentageValid" color="primary" variant="flat" rounded="pill" block class="mb-4 text-none"
+          @click="handleCreate">
+          <VIcon icon="mdi-plus" start />
+          Add New Allocation
+        </VBtn>
+        <div v-if="loading" class="py-4">
+          <VSkeletonLoader type="article" v-for="i in 3" :key="i" class="mb-3" />
+        </div>
+        <div v-else-if="allocations.length === 0" class="empty-state text-center py-8">
+          <VIcon icon="mdi-chart-arc" size="48" color="grey-lighten-1" class="mb-3" />
+          <div class="text-grey-darken-1">No allocations yet</div>
+        </div>
 
-      <VList v-else class="allocation-list">
-        <VListItem v-for="allocation in recentAllocations" :key="allocation.id" class="allocation-item mb-3">
-          <div class="allocation-card">
-            <div class="allocation-header" @click="toggleExpand(allocation.id)">
-              <div>
-                <div class="allocation-amount">{{ formatCurrency(allocation.source_amount) }}</div>
-                <div class="allocation-date">{{ formatDate(allocation.date) }}</div>
-              </div>
-              <div class="allocation-actions">
-                <VBtn icon="mdi-delete" size="small" variant="text" color="error"
-                  @click.stop="handleDelete(allocation.id)" />
+        <VList v-else class="allocation-list">
+          <VListItem v-for="allocation in recentAllocations" :key="allocation.id" class="allocation-item mb-3">
+            <div class="allocation-card">
+              <div class="allocation-header" @click="toggleExpand(allocation.id)">
+                <div>
+                  <div class="allocation-amount">{{ formatCurrency(allocation.source_amount) }}</div>
+                  <div class="allocation-date">{{ formatDate(allocation.date) }}</div>
+                </div>
                 <VIcon :icon="expandedAllocation === allocation.id ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
               </div>
-            </div>
 
-            <!-- Expanded Details -->
-            <Transition name="expand">
-              <div v-if="expandedAllocation === allocation.id" class="allocation-details">
-                <VDivider class="my-3" />
-                <div class="details-list">
-                  <div v-for="item in allocation.allocation_items" :key="item.id" class="detail-item">
-                    <div class="detail-info">
-                      <div class="detail-name text-wrap">{{ item.pocket_name }}</div>
-                      <div class="detail-percentage">{{ item.pocket_percentage.toFixed(2) }}%
+              <!-- Expanded Details -->
+              <Transition name="expand">
+                <div v-if="expandedAllocation === allocation.id" class="allocation-details">
+                  <VDivider class="my-3" />
+                  <div class="details-list">
+                    <div v-for="item in allocation.allocation_items" :key="item.id" class="detail-item">
+                      <div class="detail-info">
+                        <div class="detail-name text-wrap">{{ item.pocket_name }}</div>
+                        <div class="detail-percentage">{{ item.pocket_percentage.toFixed(2) }}%
+                        </div>
+                      </div>
+                      <div class="detail-amount-group">
+                        <div class="detail-amount">{{ formatCurrency(item.amount) }}</div>
+                        <VBtn :icon="copiedAmount === item.id ? 'mdi-check' : 'mdi-content-copy'" size="x-small"
+                          variant="text" :color="copiedAmount === item.id ? 'success' : 'grey'"
+                          @click="copyAmount(item.amount, item.id)" />
                       </div>
                     </div>
-                    <div class="detail-amount-group">
-                      <div class="detail-amount">{{ formatCurrency(item.amount) }}</div>
-                      <VBtn :icon="copiedAmount === item.id ? 'mdi-check' : 'mdi-content-copy'" size="x-small"
-                        variant="text" :color="copiedAmount === item.id ? 'success' : 'grey'"
-                        @click="copyAmount(item.amount, item.id)" />
-                    </div>
+                  </div>
+                  <div v-if="allocation.notes" class="notes-section">
+                    <VIcon icon="mdi-note-text" size="small" class="mr-2" color="primary" />
+                    <span class="notes-text">{{ allocation.notes }}</span>
+                  </div>
+
+                  <!-- Delete Button -->
+                  <div class="delete-section mt-3">
+                    <VBtn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" class="text-none"
+                      rounded="pill" @click.stop="handleDelete(allocation.id)">
+                      Delete Allocation
+                    </VBtn>
                   </div>
                 </div>
-                <div v-if="allocation.notes" class="notes-section">
-                  <VIcon icon="mdi-note-text" size="small" class="mr-2" />
-                  <span class="notes-text">{{ allocation.notes }}</span>
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </VListItem>
-      </VList>
-    </VCardText>
+              </Transition>
+            </div>
+          </VListItem>
+        </VList>
+      </VCardText>
+    </Transition>
   </VCard>
 </template>
 
@@ -143,10 +172,43 @@ function handleDelete(id: string) {
   height: 100%;
 }
 
+.card-header {
+  user-select: none;
+  padding: 20px;
+  padding-bottom: 16px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+}
+
 .allocations-content {
   max-height: 400px;
   overflow-y: auto;
   flex: 1;
+}
+
+/* Mobile: Collapsible content */
+@media (max-width: 959px) {
+  .allocations-content {
+    transition: all 0.3s ease;
+  }
+}
+
+/* Desktop: Always show content, override v-show */
+@media (min-width: 960px) {
+  .allocations-content {
+    display: block !important;
+    opacity: 1 !important;
+    max-height: none !important;
+  }
 }
 
 .allocations-content::-webkit-scrollbar {
@@ -226,6 +288,7 @@ function handleDelete(id: string) {
 
 .detail-item {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 5px;
@@ -268,16 +331,24 @@ function handleDelete(id: string) {
 .notes-section {
   margin-top: 12px;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 8px;
   display: flex;
   align-items: flex-start;
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.7);
+  gap: 4px;
 }
 
 .notes-text {
-  font-style: italic;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+}
+
+.delete-section {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(15, 118, 110, 0.2);
 }
 
 .empty-state {
@@ -288,7 +359,38 @@ function handleDelete(id: string) {
   justify-content: center;
 }
 
-/* Expand Animation */
+.subtitle-stats {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.subtitle-stats-desktop {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+/* Card Expand Animation */
+.expand-card-enter-active,
+.expand-card-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-card-enter-from,
+.expand-card-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.expand-card-enter-to,
+.expand-card-leave-from {
+  opacity: 1;
+  max-height: 1000px;
+}
+
+/* Item Expand Animation */
 .expand-enter-active,
 .expand-leave-active {
   transition: all 0.3s ease;

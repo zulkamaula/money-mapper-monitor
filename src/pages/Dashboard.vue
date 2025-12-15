@@ -9,7 +9,6 @@ import { listAllocations, createAllocation, deleteAllocation } from '../api/allo
 import type { MoneyBook, Pocket, Allocation } from '../types/models'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
 import MoneyBookSelector from '../components/dashboard/MoneyBookSelector.vue'
-import StatsCards from '../components/dashboard/StatsCards.vue'
 import PocketsManager from '../components/dashboard/PocketsManager.vue'
 import AllocationsHistory from '../components/dashboard/AllocationsHistory.vue'
 import AllocationDialog from '../components/dashboard/AllocationDialog.vue'
@@ -307,19 +306,12 @@ function handleDeleteAllocation(id: string) {
   <DefaultLayout>
     <div class="dashboard-main">
       <VContainer fluid class="dashboard-container px-6">
-        <!-- Top Row: Money Book Selector + Stats Cards -->
+        <!-- Money Book Selector -->
         <VRow class="mb-6" justify="center">
-          <!-- Money Book Selector (Left - Wider) -->
-          <VCol cols="12" md="8">
+          <VCol cols="12">
             <MoneyBookSelector :books="moneyBooks" :selected-book="selectedBook" :loading="loading"
               :creating-book="creatingBook" @select="selectBook" @create="handleCreateBook" @update="handleUpdateBook"
               @delete="handleDeleteBook" />
-          </VCol>
-
-          <!-- Stats Cards (Right - Compact) -->
-          <VCol cols="12" md="4" v-if="selectedBook">
-            <StatsCards :total-pockets="pockets.length" :total-percentage="totalPercentage"
-              :total-allocations="allocations.length" />
           </VCol>
         </VRow>
 
