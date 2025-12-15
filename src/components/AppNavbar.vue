@@ -12,8 +12,9 @@ const userMenu = ref(false)
 
 // Get user avatar with proper fallback
 const userAvatar = computed(() => {
-  return auth.user?.user_metadata?.picture ||
-    auth.user?.user_metadata?.avatar_url ||
+  if (!auth.user) return null
+  return auth.user.user_metadata?.picture ||
+    auth.user.user_metadata?.avatar_url ||
     null
 })
 
@@ -62,7 +63,17 @@ function showLogoutDialog() {
         <template v-slot:activator="{ props }">
           <VBtn v-bind="props" class="user-menu-btn px-0" elevation="0" rounded="pill">
             <VAvatar size="35" :color="userAvatar ? undefined : 'primary'" class="user-avatar">
-              <VImg v-if="userAvatar" :src="userAvatar" alt="User Avatar" cover />
+              <VImg v-if="userAvatar" :src="userAvatar" :lazy-src="userAvatar" alt="User Avatar" cover
+                :transition="false">
+                <template v-slot:placeholder>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <VProgressCircular indeterminate size="20" width="2" color="primary" />
+                  </div>
+                </template>
+                <template v-slot:error>
+                  <VIcon icon="mdi-account" size="20" />
+                </template>
+              </VImg>
               <VIcon v-else icon="mdi-account" size="20" />
             </VAvatar>
             <div class="d-flex align-center ga-1 mx-2">
@@ -77,7 +88,17 @@ function showLogoutDialog() {
           <VCardText class="pa-4">
             <div class="d-flex align-center mb-3">
               <VAvatar size="56" :color="userAvatar ? undefined : 'primary'" class="menu-user-avatar mr-3">
-                <VImg v-if="userAvatar" :src="userAvatar" alt="User Avatar" cover />
+                <VImg v-if="userAvatar" :src="userAvatar" :lazy-src="userAvatar" alt="User Avatar" cover
+                  :transition="false">
+                  <template v-slot:placeholder>
+                    <div class="d-flex align-center justify-center fill-height">
+                      <VProgressCircular indeterminate size="28" width="3" color="primary" />
+                    </div>
+                  </template>
+                  <template v-slot:error>
+                    <VIcon icon="mdi-account" size="28" />
+                  </template>
+                </VImg>
                 <VIcon v-else icon="mdi-account" size="28" />
               </VAvatar>
               <div class="flex-grow-1">

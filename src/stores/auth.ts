@@ -1,4 +1,3 @@
-// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase, getCurrentUser, signInWithGoogle, signOut } from '../lib/supabase'
@@ -10,41 +9,41 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const loading = ref(true)
 
+  function handleAuthSuccess(authUser: User, cleanUrl = false) {
+    const notification = useNotificationStore()
+    const userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'User'
+    notification.success(`Welcome, ${userName}!`)
+
+    const routeMethod = cleanUrl ? router.replace : router.push
+    routeMethod({ name: 'dashboard' })
+  }
+
   async function init() {
     try {
-      user.value = await getCurrentUser()
-      loading.value = false
+      const isOAuthCallback = window.location.hash.includes('access_token')
 
-      // Handle OAuth callback redirect
-      if (user.value && router.currentRoute.value.name === 'home') {
-        const notification = useNotificationStore()
-        const userName = user.value.user_metadata?.full_name || user.value.user_metadata?.name || 'User'
-        notification.success(`Welcome back, ${userName}!`)
-        router.push({ name: 'dashboard' })
+      user.value = await getCurrentUser()
+
+      // Handle OAuth callback (first login from redirect)
+      if (isOAuthCallback && user.value) {
+        handleAuthSuccess(user.value, true)
       }
 
-      // Listen to auth state changes
+      // Listen to subsequent auth state changes
       supabase.auth.onAuthStateChange((_event, session) => {
         const newUser = session?.user ?? null
         const oldUser = user.value
         user.value = newUser
 
-        // Auto redirect based on auth state
-        if (newUser && !oldUser && router.currentRoute.value.name === 'home') {
-          // User just logged in from home page
-          const notification = useNotificationStore()
-          const userName = newUser.user_metadata?.full_name || newUser.user_metadata?.name || 'User'
-          notification.success(`Welcome, ${userName}!`)
-          router.push({ name: 'dashboard' })
-        } else if (!newUser && oldUser && router.currentRoute.value.name === 'dashboard') {
-          // User just logged out from dashboard
-          router.push({ name: 'home' })
+        if (newUser && !oldUser) {
+          handleAuthSuccess(newUser, false)
+        } else if (!newUser && oldUser) {
+          router.push({ name: 'login' })
         }
       })
     } catch (error) {
-      const notification = useNotificationStore()
-      notification.error('Failed to initialize authentication')
       console.error('Auth initialization error:', error)
+    } finally {
       loading.value = false
     }
   }
@@ -53,19 +52,18 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await signInWithGoogle()
     } catch (error) {
-      const notification = useNotificationStore()
-      notification.error('Failed to login with Google')
-      console.error('Google login error:', error)
+      console.error('Login error:', error)
+      throw error
     }
   }
 
   async function logout() {
     try {
       await signOut()
+      user.value = null
     } catch (error) {
-      const notification = useNotificationStore()
-      notification.error('Failed to logout')
       console.error('Logout error:', error)
+      throw error
     }
   }
 

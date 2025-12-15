@@ -1,26 +1,43 @@
-// src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: () => import('../pages/Home.vue') },
-    { path: '/dashboard', name: 'dashboard', component: () => import('../pages/Dashboard.vue') },
-    { path: '/privacy', name: 'privacy', component: () => import('../pages/PrivacyPolicy.vue') },
-    { path: '/terms', name: 'terms', component: () => import('../pages/Terms.vue') }
+    { path: '/', name: 'dashboard', component: () => import('../pages/Dashboard.vue'), meta: { requiresAuth: true } },
+    { path: '/login', name: 'login', component: () => import('../pages/Home.vue'), meta: { public: true } },
+    { path: '/privacy', name: 'privacy', component: () => import('../pages/PrivacyPolicy.vue'), meta: { public: true } },
+    { path: '/terms', name: 'terms', component: () => import('../pages/Terms.vue'), meta: { public: true } }
   ]
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // Wait for auth to initialize before proceeding
-  if (auth.loading) return
+  // Wait for auth initialization to complete
+  if (auth.loading) {
+    await new Promise<void>((resolve) => {
+      const unwatch = auth.$subscribe(() => {
+        if (!auth.loading) {
+          unwatch()
+          resolve()
+        }
+      })
+    })
+  }
 
-  // Prevent unauthenticated users from accessing protected routes
-  if (to.name === 'dashboard' && !auth.user) {
-    return { name: 'home' }
+  const isAuthenticated = !!auth.user
+  const requiresAuth = to.meta.requiresAuth
+
+  // Redirect authenticated users from login page to dashboard
+  if (to.name === 'login' && isAuthenticated) {
+    return { name: 'dashboard' }
+  }
+
+  // Redirect unauthenticated users trying to access protected routes
+  if (requiresAuth && !isAuthenticated) {
+    return { name: 'login' }
   }
 })
+
 export default router

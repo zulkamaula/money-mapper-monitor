@@ -34,7 +34,12 @@
     Referrer-Policy = "no-referrer-when-downgrade"
     
     # Content Security Policy (allow Google Fonts and external resources)
+    # Current: Allows all HTTPS images (good for flexibility)
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co"
+    
+    # Alternative (stricter): Whitelist specific domains for better security
+    # Uncomment below and comment above if you want maximum security
+    # Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://*.supabase.co"
 
 # Cache static assets
 [[headers]]
