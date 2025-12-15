@@ -57,7 +57,6 @@ export default defineConfig({
           // Component chunks
           'dashboard-components': [
             './src/components/dashboard/MoneyBookSelector.vue',
-            './src/components/dashboard/StatsCards.vue',
             './src/components/dashboard/PocketsManager.vue',
             './src/components/dashboard/AllocationsHistory.vue',
             './src/components/dashboard/AllocationDialog.vue',
