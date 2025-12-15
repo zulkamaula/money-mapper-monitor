@@ -143,31 +143,31 @@ function handleDelete(pocketId: string) {
             </template>
             <template v-else>
               <VListItemTitle class="d-flex align-center justify-space-between">
-                <span class="pocket-name">{{ pocket.name }}</span>
                 <div class="pocket-actions">
-                  <VChip color="primary" size="small" variant="flat" class="mr-2 ml-1">
+                  <span class="pocket-name">{{ pocket.name }}</span>
+                  <VChip color="primary" size="x-small" variant="flat" class="mr-2 ml-1">
                     {{ pocket.percentage.toFixed(2) }}%
                   </VChip>
-                  <VMenu>
-                    <template v-slot:activator="{ props }">
-                      <VBtn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
-                    </template>
-                    <VList density="compact">
-                      <VListItem @click="startEdit(pocket.id)">
-                        <template v-slot:prepend>
-                          <VIcon icon="mdi-pencil" />
-                        </template>
-                        <VListItemTitle>Edit</VListItemTitle>
-                      </VListItem>
-                      <VListItem @click="handleDelete(pocket.id)">
-                        <template v-slot:prepend>
-                          <VIcon icon="mdi-delete" color="error" />
-                        </template>
-                        <VListItemTitle class="text-error">Delete</VListItemTitle>
-                      </VListItem>
-                    </VList>
-                  </VMenu>
                 </div>
+                <VMenu>
+                  <template v-slot:activator="{ props }">
+                    <VBtn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+                  </template>
+                  <VList density="compact">
+                    <VListItem @click="startEdit(pocket.id)">
+                      <template v-slot:prepend>
+                        <VIcon icon="mdi-pencil" />
+                      </template>
+                      <VListItemTitle>Edit</VListItemTitle>
+                    </VListItem>
+                    <VListItem @click="handleDelete(pocket.id)">
+                      <template v-slot:prepend>
+                        <VIcon icon="mdi-delete" color="error" />
+                      </template>
+                      <VListItemTitle class="text-error">Delete</VListItemTitle>
+                    </VListItem>
+                  </VList>
+                </VMenu>
               </VListItemTitle>
             </template>
           </VListItem>
@@ -303,6 +303,8 @@ function handleDelete(pocketId: string) {
 
 .pocket-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
   gap: 4px;
 }

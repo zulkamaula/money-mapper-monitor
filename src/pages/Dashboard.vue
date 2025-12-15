@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 import { useDialogStore } from '../stores/dialog'
@@ -31,15 +31,6 @@ const creatingBook = ref(false)
 
 // Dialog state
 const showAllocationDialog = ref(false)
-
-// Computed
-const totalPercentage = computed(() => {
-  return pockets.value.reduce((sum, p) => sum + p.percentage, 0)
-})
-
-const isPercentageValid = computed(() => {
-  return Math.abs(totalPercentage.value - 100) < 0.01
-})
 
 // Lifecycle
 onMounted(async () => {
@@ -325,9 +316,8 @@ function handleDeleteAllocation(id: string) {
 
           <!-- Allocations History (Right) -->
           <VCol cols="12" md="8">
-            <AllocationsHistory :allocations="allocations" :loading="loadingAllocations"
-              :is-percentage-valid="isPercentageValid" @create="openAllocationDialog"
-              @delete="handleDeleteAllocation" />
+            <AllocationsHistory :allocations="allocations" :pockets="pockets" :loading="loadingAllocations"
+              @create="openAllocationDialog" @delete="handleDeleteAllocation" />
           </VCol>
         </VRow>
       </VContainer>

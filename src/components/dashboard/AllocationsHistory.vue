@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Allocation } from '../../types/models'
+import type { Allocation, Pocket } from '../../types/models'
 import dayjs from 'dayjs'
 
 interface Props {
   allocations: Allocation[]
+  pockets: Pocket[]
   loading?: boolean
-  isPercentageValid?: boolean
 }
 
 interface Emits {
@@ -96,11 +96,13 @@ function handleDelete(id: string) {
     <Transition name="expand-card">
       <VCardText v-show="isExpanded" class="pa-6 allocations-content">
         <!-- Add New Button -->
-        <VBtn v-if="isPercentageValid" color="primary" variant="flat" rounded="pill" block class="mb-4 text-none"
+        <VBtn v-if="pockets.length > 0" color="primary" variant="flat" rounded="pill" block class="mb-4 text-none"
           @click="handleCreate">
           <VIcon icon="mdi-plus" start />
           Add New Allocation
         </VBtn>
+
+
         <div v-if="loading" class="py-4">
           <VSkeletonLoader type="article" v-for="i in 3" :key="i" class="mb-3" />
         </div>
