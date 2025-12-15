@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Pocket } from '../../types/models'
+import { formatPercentage } from '../../utils/format'
 
 interface Props {
   pockets: Pocket[]
@@ -104,7 +105,7 @@ function handleDelete(pocketId: string) {
           <div class="subtitle-stats d-md-none mt-1">
             {{ pockets.length }} pockets
             <VChip :color="percentageColor" size="x-small" variant="flat" class="percentage-chip">
-              {{ totalPercentage.toFixed(2) }}%
+              {{ formatPercentage(totalPercentage) }}
             </VChip>
           </div>
         </div>
@@ -112,7 +113,7 @@ function handleDelete(pocketId: string) {
         <div class="subtitle-stats-desktop d-none d-md-flex">
           {{ pockets.length }} pockets
           <VChip :color="percentageColor" size="x-small" variant="flat" class="percentage-chip ml-2">
-            {{ totalPercentage.toFixed(2) }}%
+            {{ formatPercentage(totalPercentage) }}
           </VChip>
         </div>
         <!-- Mobile: Toggle button -->
@@ -149,9 +150,9 @@ function handleDelete(pocketId: string) {
           <VListItem v-for="pocket in pockets" :key="pocket.id" class="pocket-item mb-2">
             <VListItemTitle class="d-flex align-center justify-space-between">
               <div class="pocket-actions">
-                <span class="pocket-name">{{ pocket.name }}</span>
+                <span class="pocket-name text-wrap">{{ pocket.name }}</span>
                 <VChip color="primary" size="x-small" variant="flat" class="mr-2 ml-1">
-                  {{ pocket.percentage.toFixed(2) }}%
+                  {{ formatPercentage(pocket.percentage) }}
                 </VChip>
               </div>
               <VMenu location="bottom end" :offset="[-8, -12]" scroll-strategy="close">
@@ -177,7 +178,7 @@ function handleDelete(pocketId: string) {
     <!-- Pocket Dialog (Create/Edit) -->
     <VDialog v-model="showDialog" max-width="500">
       <VCard>
-        <VCardTitle class="pa-5">
+        <VCardTitle class="pa-5 text-subtitle-1">
           <VIcon :icon="dialogMode === 'create' ? 'mdi-wallet-plus' : 'mdi-pencil'" class="mr-2" />
           {{ dialogMode === 'create' ? 'Add New Pocket' : 'Edit Pocket' }}
         </VCardTitle>
@@ -187,10 +188,10 @@ function handleDelete(pocketId: string) {
         <VCardText class="pa-5 overflow-auto">
           <VTextField v-model="pocketData.name" label="Pocket Name" variant="outlined" class="mb-4" autofocus />
           <VTextField v-model.number="pocketData.percentage" label="Percentage" type="number" variant="outlined"
-            suffix="%" :hint="`Remaining: ${remainingPercentage.toFixed(2)}%`" persistent-hint />
+            suffix="%" :hint="`Remaining: ${formatPercentage(remainingPercentage)}`" persistent-hint />
 
           <div v-if="!canAddPocket && pocketData.percentage > 0" class="text-error text-caption mt-2">
-            Exceeds limit! Remaining after this: {{ remainingPercentage.toFixed(2) }}%
+            Exceeds limit! Remaining after this: {{ formatPercentage(remainingPercentage) }}
           </div>
         </VCardText>
 
@@ -296,6 +297,8 @@ function handleDelete(pocketId: string) {
 
 .pocket-name {
   font-weight: 600;
+  line-height: 20px;
+  font-size: 0.9rem;
   color: rgba(15, 118, 110, 0.9);
 }
 

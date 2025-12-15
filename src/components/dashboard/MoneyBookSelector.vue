@@ -117,7 +117,7 @@ function handleDelete(book: MoneyBook, event?: Event) {
 
                   <!-- Display Mode -->
                   <VChip v-else :color="selectedBook?.id === book.id ? 'primary' : 'grey'" @click="handleSelect(book)"
-                    class="book-chip" size="large" :variant="selectedBook?.id === book.id ? 'flat' : 'outlined'">
+                    class="book-chip" :variant="selectedBook?.id === book.id ? 'flat' : 'outlined'">
                     {{ book.name }}
                     <VMenu class="border">
                       <template v-slot:activator="{ props }">
@@ -243,16 +243,20 @@ function handleDelete(book: MoneyBook, event?: Event) {
   overflow-x: auto;
   padding: 4px 0 8px 0;
   position: relative;
+  border-radius: 10px;
 
-  /* Gradient shadows to indicate scrollability */
+  /* Pure CSS scroll shadows using background-attachment trick */
   background:
-    linear-gradient(to right, rgba(255, 255, 255, 0.95) 0%, transparent 20px),
-    linear-gradient(to left, rgba(255, 255, 255, 0.95) 0%, transparent 20px),
-    linear-gradient(to right, rgba(15, 118, 110, 0.1) 0%, transparent 2px),
-    linear-gradient(to left, rgba(15, 118, 110, 0.1) 0%, transparent 2px);
+    /* Shadow covers - move with content (local) */
+    linear-gradient(to right, white 40%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, white 40%, rgba(255, 255, 255, 0)) 100% 0,
+
+    /* Shadow gradients - fixed to container (scroll) */
+    radial-gradient(farthest-side at 0 50%, rgba(15, 118, 110, 0.3), transparent) 0 0,
+    radial-gradient(farthest-side at 100% 50%, rgba(15, 118, 110, 0.3), transparent) 100% 0;
+
   background-repeat: no-repeat;
-  background-size: 20px 100%, 20px 100%, 2px 100%, 2px 100%;
-  background-position: left center, right center, left center, right center;
+  background-size: 25px 100%, 25px 100%, 16px 100%, 16px 100%;
   background-attachment: local, local, scroll, scroll;
 
   /* Smooth scrolling */
@@ -260,9 +264,10 @@ function handleDelete(book: MoneyBook, event?: Event) {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Thin auto-hide scrollbar */
+/* Hide scrollbar by default */
 .books-scroll-container::-webkit-scrollbar {
   height: 4px;
+  width: 4px;
 }
 
 .books-scroll-container::-webkit-scrollbar-track {
@@ -270,23 +275,18 @@ function handleDelete(book: MoneyBook, event?: Event) {
 }
 
 .books-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(15, 118, 110, 0.15);
+  background: transparent;
   border-radius: 2px;
-  transition: background 0.2s;
+  transition: background 0.2s ease;
 }
 
-.books-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 118, 110, 0.3);
-}
-
-/* Auto-hide scrollbar - only show on hover */
-.books-scroll-container::-webkit-scrollbar-thumb {
-  opacity: 0;
-  transition: opacity 0.3s, background 0.2s;
-}
-
+/* Show scrollbar on hover */
 .books-scroll-container:hover::-webkit-scrollbar-thumb {
-  opacity: 1;
+  background: rgba(15, 118, 110, 0.2);
+}
+
+.books-scroll-container:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 118, 110, 0.35);
 }
 
 .books-list {

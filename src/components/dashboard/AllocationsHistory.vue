@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import type { Allocation, Pocket } from '../../types/models'
 import dayjs from 'dayjs'
+import { formatPercentage } from '../../utils/format'
 
 interface Props {
   allocations: Allocation[]
@@ -130,7 +131,7 @@ function handleDelete(id: string) {
                     <div v-for="item in allocation.allocation_items" :key="item.id" class="detail-item">
                       <div class="detail-info">
                         <div class="detail-name text-wrap">{{ item.pocket_name }}</div>
-                        <div class="detail-percentage">{{ item.pocket_percentage.toFixed(2) }}%
+                        <div class="detail-percentage rounded-pill">{{ formatPercentage(item.pocket_percentage) }}
                         </div>
                       </div>
                       <div class="detail-amount-group">
@@ -261,14 +262,14 @@ function handleDelete(id: string) {
 }
 
 .allocation-amount {
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 700;
   color: rgba(15, 118, 110, 0.9);
   margin-bottom: 4px;
 }
 
 .allocation-date {
-  font-size: 13px;
+  font-size: 0.7rem;
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -315,7 +316,6 @@ function handleDelete(id: string) {
   font-size: 12px;
   padding: 2px 8px;
   background: rgba(15, 118, 110, 0.1);
-  border-radius: 4px;
   color: rgba(15, 118, 110, 0.9);
 }
 

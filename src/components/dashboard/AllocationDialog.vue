@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { Pocket } from '../../types/models'
+import { formatPercentage, formatCurrency, formatNumberInput, parseNumberInput } from '../../utils/format'
 import dayjs from 'dayjs'
 
 interface Props {
@@ -22,6 +23,7 @@ const form = ref({
   notes: ''
 })
 
+const sourceAmountDisplay = ref('')
 const previewAllocation = ref<{ pocket: Pocket; amount: number }[]>([])
 
 const internalValue = computed({
@@ -36,6 +38,21 @@ watch(() => form.value.sourceAmount, (newAmount) => {
     previewAllocation.value = []
   }
 })
+
+function handleAmountInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  const parsed = parseNumberInput(input.value)
+  form.value.sourceAmount = parsed
+  sourceAmountDisplay.value = parsed > 0 ? formatNumberInput(parsed) : ''
+}
+
+function handleAmountPaste(event: ClipboardEvent) {
+  event.preventDefault()
+  const pastedText = event.clipboardData?.getData('text') || ''
+  const parsed = parseNumberInput(pastedText)
+  form.value.sourceAmount = parsed
+  sourceAmountDisplay.value = parsed > 0 ? formatNumberInput(parsed) : ''
+}
 
 function calculatePreview() {
   const sourceAmount = form.value.sourceAmount
@@ -68,14 +85,6 @@ function calculatePreview() {
   previewAllocation.value = results
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount)
-}
-
 function handleSave() {
   emit('save', { ...form.value })
   resetForm()
@@ -87,6 +96,7 @@ function resetForm() {
     date: dayjs().format('YYYY-MM-DD'),
     notes: ''
   }
+  sourceAmountDisplay.value = ''
   previewAllocation.value = []
 }
 </script>
@@ -94,7 +104,7 @@ function resetForm() {
 <template>
   <VDialog v-model="internalValue" max-width="600">
     <VCard>
-      <VCardTitle class="pa-5">
+      <VCardTitle class="pa-5 text-subtitle-1">
         <VIcon icon="mdi-chart-donut" class="mr-2" />
         Create New Allocation
       </VCardTitle>
@@ -102,8 +112,8 @@ function resetForm() {
       <VDivider />
 
       <VCardText class="pa-5 overflow-auto">
-        <VTextField v-model.number="form.sourceAmount" label="Source Amount" type="number" variant="outlined"
-          class="mb-4" autofocus prefix="Rp" />
+        <VTextField v-model="sourceAmountDisplay" label="Source Amount" type="text" variant="outlined" class="mb-4"
+          autofocus prefix="Rp" @input="handleAmountInput" @paste="handleAmountPaste" inputmode="numeric" />
 
         <VTextField v-model="form.date" label="Date" type="date" variant="outlined" class="mb-4" />
 
@@ -119,9 +129,9 @@ function resetForm() {
             <VListItem v-for="preview in previewAllocation" :key="preview.pocket.id" class="preview-item">
               <VListItemTitle class="d-flex flex-wrap justify-space-between">
                 <div class="preview-pocket">
-                  <span class="preview-name">{{ preview.pocket.name }}</span>
-                  <VChip size="x-small" variant="flat" color="primary" class="ml-2">
-                    {{ preview.pocket.percentage.toFixed(2) }}%
+                  <span class="preview-name text-wrap">{{ preview.pocket.name }}</span>
+                  <VChip size="x-small" variant="flat" color="primary">
+                    {{ formatPercentage(preview.pocket.percentage) }}
                   </VChip>
                 </div>
                 <span class="preview-amount">{{ formatCurrency(preview.amount) }}</span>
@@ -180,11 +190,15 @@ function resetForm() {
 
 .preview-pocket {
   display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
   align-items: center;
 }
 
 .preview-name {
   font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 19px;
   color: rgba(15, 118, 110, 0.9);
 }
 
